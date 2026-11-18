@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fbf6ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Compras casa">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+<title>¿A quién le toca? · Compras de la casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbf6ee; --card:#ffffff; --ink:#2b2622; --muted:#7d746b; --line:#ece3d6;
+    --accent:#2b2622;
+    --c0:#e8634a; --c1:#2a9d8f; --c2:#e9a23b;
+    --c0s:#fde6e1; --c1s:#dcf2ef; --c2s:#fcefd8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 100px}
+  header h1{font-size:26px;font-weight:900;margin:4px 0 2px;letter-spacing:-.3px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .note{background:#fff4d6;border:1px solid #f1dfa8;border-radius:12px;padding:10px 12px;font-size:14px;margin:12px 0;display:none}
+  .note.show{display:block}
+
+  /* resumen por persona */
+  .people{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 6px}
+  .person{border-radius:16px;padding:10px 10px 12px;min-height:92px}
+  .person .nm{font-weight:900;font-size:15px;display:flex;align-items:center;gap:6px}
+  .person .dot{width:10px;height:10px;border-radius:50%}
+  .person .lbl{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:800}
+  .person .its{font-size:18px;margin-top:2px;line-height:1.3;word-break:break-word}
+  .person .none{font-size:13px;color:var(--muted)}
+
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:22px 4px 8px;font-weight:900}
+
+  .item{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+  .emoji{font-size:30px;width:48px;height:48px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none}
+  .item .mid{flex:1;min-width:0}
+  .item .name{font-weight:900;font-size:17px}
+  .item .turn{margin-top:4px;font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .chip{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:900;font-size:13px}
+  .item .last{font-size:12px;color:var(--muted);margin-top:4px}
+  .buy{flex:none;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:800;font-size:14px;padding:10px 12px;border-radius:12px;cursor:pointer}
+  .buy:active{transform:scale(.97)}
+  .buy[disabled]{opacity:.35}
+
+  .hist{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .hrow{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line);font-size:14px}
+  .hrow:first-child{border-top:0}
+  .hrow .t{flex:1}
+  .hrow .w{color:var(--muted);font-size:12px;white-space:nowrap}
+  .x{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px}
+  .empty{padding:16px;color:var(--muted);font-size:14px;text-align:center}
+
+  /* tabs */
+  nav{position:fixed;left:0;right:0;bottom:0;background:rgba(251,246,238,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  nav .in{display:flex;gap:6px;max-width:560px;width:100%}
+  nav button{flex:1;border:0;background:none;font:inherit;font-weight:800;font-size:13px;color:var(--muted);padding:8px 4px;border-radius:12px;cursor:pointer}
+  nav button span{display:block;font-size:20px}
+  nav button.on{background:#fff;color:var(--ink);box-shadow:0 1px 0 var(--line)}
+  .view{display:none}.view.on{display:block}
+
+  /* ajustes */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+  label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  input[type=text]{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin:4px 0 10px;color:var(--ink)}
+  .row{display:flex;gap:8px;align-items:center}
+  .row input{margin:0}
+  .btn{border:0;background:var(--accent);color:#fff;font:inherit;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;font-size:15px}
+  .btn.ghost{background:var(--bg);color:var(--ink)}
+  .ilist .ir{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .ilist .ir:first-child{border-top:0}
+  .ilist .ir .n{flex:1;font-weight:700}
+  .small{font-size:13px;color:var(--muted);margin:2px 0 0}
+  .saved{font-size:13px;color:var(--c1);font-weight:800;margin-left:8px;opacity:0;transition:opacity .3s}
+  .saved.show{opacity:1}
+
+  /* hoja "¿quién lo compró?" */
+  .sheetbg{position:fixed;inset:0;background:rgba(43,38,34,.4);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .sheetbg.show{display:flex}
+  .sheet{background:var(--bg);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}
+  .sheet h3{margin:0 0 4px;font-size:20px;font-weight:900}
+  .sheet p{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .who{display:flex;flex-direction:column;gap:8px}
+  .who button{border:2px solid transparent;font:inherit;font-weight:900;font-size:17px;padding:14px;border-radius:14px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center}
+  .who button small{font-weight:700;font-size:12px;opacity:.75}
+  .cancel{margin-top:10px;width:100%}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;font-size:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:20;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>¿A quién le toca? 🛒</h1>
+    <p>Las compras de la casa, sin pizarrón.</p>
+  </header>
+  <div class="note" id="note"></div>
+
+  <section class="view on" id="v-turnos">
+    <div class="people" id="people"></div>
+    <h2>Cosas de la casa</h2>
+    <div id="items"><div class="empty">Cargando…</div></div>
+  </section>
+
+  <section class="view" id="v-hist">
+    <h2>Quién compró qué</h2>
+    <div class="hist" id="hist"><div class="empty">Cargando…</div></div>
+  </section>
+
+  <section class="view" id="v-ajustes">
+    <h2>Los roomies</h2>
+    <div class="card">
+      <div id="names"></div>
+      <div class="row"><button class="btn" id="saveNames">Guardar nombres</button><span class="saved" id="savedNames">Guardado ✓</span></div>
+    </div>
+    <h2>Cosas que compran juntos</h2>
+    <div class="card">
+      <div class="ilist" id="ilist"></div>
+      <div style="margin-top:12px">
+        <label>Agregar algo nuevo</label>
+        <div class="row" style="margin-top:4px">
+          <input type="text" id="newEmoji" placeholder="🧴" style="width:64px;text-align:center" maxlength="4">
+          <input type="text" id="newName" placeholder="Ej. cloro" maxlength="40">
+          <button class="btn" id="addItem">+</button>
+        </div>
+      </div>
+    </div>
+    <p class="small">Cómo se decide el turno: le toca a quien ha comprado esa cosa menos veces. Si hay empate, a quien hace más que no la compra.</p>
+  </section>
+</div>
+
+<nav><div class="in">
+  <button class="on" data-v="turnos"><span>🏠</span>Turnos</button>
+  <button data-v="hist"><span>🧾</span>Historial</button>
+  <button data-v="ajustes"><span>⚙️</span>Ajustes</button>
+</div></nav>
+
+<div class="sheetbg" id="sheetbg">
+  <div class="sheet">
+    <h3 id="sheetTitle">¿Quién lo compró?</h3>
+    <p id="sheetSub"></p>
+    <div class="who" id="who"></div>
+    <button class="btn ghost cancel" id="cancel">Cancelar</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ===== Conexión con Firebase =====
+// Estas son las "direcciones" de tu base de datos (no es una contraseña).
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, collection, query, orderBy, limit, onSnapshot, addDoc, setDoc, deleteDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBRvwPpEHNSUI_rGaI7ywtTkA5CE1w9cXg",
+  authDomain: "gastos-del-hogar-417jt.firebaseapp.com",
+  projectId: "gastos-del-hogar-417jt",
+  storageBucket: "gastos-del-hogar-417jt.firebasestorage.app",
+  messagingSenderId: "432148824702",
+  appId: "1:432148824702:web:3fce02a29a0d68a1e10e2f"
+};
+
+// Lo que tiene la app la primera vez que se abre (después se cambia en Ajustes).
+const CONFIG_INICIAL = {
+  roomies: [{ name: "Antonio" }, { name: "Bellakuau" }, { name: "Miriam" }],
+  items: [
+    { id: "agua",          name: "Agua potable",          emoji: "💧" },
+    { id: "papel",         name: "Papel higiénico",       emoji: "🧻" },
+    { id: "servilletas",   name: "Servilletas",           emoji: "🍽️" },
+    { id: "jabon-trastes", name: "Jabón de trastes",      emoji: "🧽" },
+    { id: "bolsas-basura", name: "Bolsas de basura",      emoji: "🗑️" },
+    { id: "pasta-dientes", name: "Pasta de dientes",      emoji: "🪥" },
+    { id: "aceite",        name: "Aceite",                emoji: "🫒" },
+    { id: "limpieza",      name: "Productos de limpieza", emoji: "🧹" }
+  ]
+};
+
+(function(){
+  const COLORS = ["c0","c1","c2"];
+  let db = null, canWrite = true;
+  let config = null;      // {roomies:[{name}], items:[{id,name,emoji}]}
+  let compras = [];       // [{id,item,quien,ts}]
+  let gotConfig = false, gotCompras = false;
+  let pendingItem = null;
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const note = (msg) => { const n = $("note"); n.textContent = msg || ""; n.classList.toggle("show", !!msg); };
+  const toast = (msg) => { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 2200); };
+
+  // ---------- tabs ----------
+  document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "v-" + b.dataset.v));
+    window.scrollTo(0,0);
+  }));
+
+  // ---------- helpers ----------
+  function roomies(){ return (config && Array.isArray(config.roomies)) ? config.roomies.slice(0,3) : []; }
+  function items(){ return (config && Array.isArray(config.items)) ? config.items : []; }
+  function nameOf(i){ const r = roomies()[i]; return (r && r.name) || ("Roomie " + (i+1)); }
+  function colorOf(i){ return COLORS[i % 3]; }
+
+  function cuando(ts){
+    if (!ts) return "";
+    const d = new Date(ts), now = new Date();
+    const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const diff = Math.round((day(now) - day(d)) / 86400000);
+    if (diff <= 0) return "hoy";
+    if (diff === 1) return "ayer";
+    if (diff < 30) return "hace " + diff + " días";
+    return d.toLocaleDateString("es-MX", { day:"numeric", month:"short" });
+  }
+
+  // A quién le toca: el que menos veces lo ha comprado; empate -> el que hace más que no lo compra (o nunca).
+  function turnoDe(itemId){
+    const n = roomies().length || 3;
+    const count = Array(n).fill(0), last = Array(n).fill(0);
+    for (const c of compras){
+      if (c.item !== itemId) continue;
+      const q = c.quien;
+      if (typeof q !== "number" || q < 0 || q >= n) continue;
+      count[q]++; if ((c.ts||0) > last[q]) last[q] = c.ts||0;
+    }
+    let best = 0;
+    for (let i = 1; i < n; i++){
+      if (count[i] < count[best] || (count[i] === count[best] && last[i] < last[best])) best = i;
+    }
+    return best;
+  }
+  function ultimaDe(itemId){ return compras.find(c => c.item === itemId) || null; }
+
+  // ---------- render ----------
+  function render(){
+    if (!gotConfig || !gotCompras) return;
+    renderPeople(); renderItems(); renderHist(); renderSettings();
+  }
+
+  function renderPeople(){
+    const box = $("people"); box.textContent = "";
+    const n = roomies().length || 3;
+    const porPersona = Array.from({length:n}, () => []);
+    for (const it of items()) porPersona[turnoDe(it.id)].push(it);
+    for (let i = 0; i < n; i++){
+      const p = el("div", "person"); p.style.background = `var(--${colorOf(i)}s)`;
+      const nm = el("div", "nm"); const dot = el("span","dot"); dot.style.background = `var(--${colorOf(i)})`;
+      nm.append(dot, document.createTextNode(nameOf(i)));
+      p.append(nm, el("div","lbl","Le toca"));
+      if (porPersona[i].length) p.append(el("div","its", porPersona[i].map(x => x.emoji || "•").join(" ")));
+      else p.append(el("div","none","Nada 🎉"));
+      p.title = porPersona[i].map(x=>x.name).join(", ");
+      box.append(p);
+    }
+  }
+
+  function renderItems(){
+    const box = $("items"); box.textContent = "";
+    if (!items().length){ box.append(el("div","empty","Todavía no hay cosas. Agrégalas en ⚙️ Ajustes.")); return; }
+    for (const it of items()){
+      const t = turnoDe(it.id), u = ultimaDe(it.id);
+      const card = el("div","item");
+      card.append(el("div","emoji", it.emoji || "🛒"));
+      const mid = el("div","mid");
+      mid.append(el("div","name", it.name));
+      const turn = el("div","turn"); turn.append(document.createTextNode("Le toca a "));
+      const chip = el("span","chip", nameOf(t)); chip.style.background = `var(--${colorOf(t)}s)`; chip.style.color = `var(--${colorOf(t)})`;
+      turn.append(chip); mid.append(turn);
+      mid.append(el("div","last", u ? `Última vez: ${nameOf(u.quien)}, ${cuando(u.ts)}` : "Nadie lo ha comprado todavía"));
+      const b = el("button","buy","Ya lo compré"); b.disabled = !canWrite || !db;
+      b.addEventListener("click", () => openSheet(it));
+      card.append(mid, b); box.append(card);
+    }
+  }
+
+  function renderHist(){
+    const box = $("hist"); box.textContent = "";
+    if (!compras.length){ box.append(el("div","empty","Aquí aparecerá cada compra que registren.")); return; }
+    const byId = Object.fromEntries(items().map(i => [i.id, i]));
+    for (const c of compras.slice(0, 100)){
+      const it = byId[c.item];
+      const r = el("div","hrow");
+      const txt = el("div","t");
+      const who = el("b", null, nameOf(c.quien)); who.style.color = `var(--${colorOf(c.quien)})`;
+      txt.append(who, document.createTextNode(` compró ${it ? (it.emoji ? it.emoji + " " : "") + it.name : "algo que ya no está en la lista"}`));
+      r.append(txt, el("div","w", cuando(c.ts)));
+      if (canWrite && db){
+        const x = el("button","x","×"); x.title = "Borrar (si fue un error)"; x.setAttribute("aria-label","Borrar registro");
+        x.addEventListener("click", async () => {
+          if (x.dataset.armed !== "1"){ x.dataset.armed = "1"; x.textContent = "¿Borrar?"; x.style.fontSize = "13px"; setTimeout(()=>{ x.dataset.armed=""; x.textContent="×"; x.style.fontSize=""; }, 3000); return; }
+          try { await deleteDoc(doc(db, "compras", c.id)); toast("Registro borrado"); } catch(e){ fail(e); }
+        });
+        r.append(x);
+      }
+      box.append(r);
+    }
+  }
+
+  let namesDirty = false;
+  function renderSettings(){
+    if (!namesDirty){
+      const nb = $("names"); nb.textContent = "";
+      for (let i = 0; i < 3; i++){
+        const lab = el("label", null, "Roomie " + (i+1));
+        const inp = el("input"); inp.type = "text"; inp.maxLength = 24; inp.value = (roomies()[i] && roomies()[i].name) || ""; inp.placeholder = "Nombre"; inp.dataset.i = i;
+        inp.addEventListener("input", () => { namesDirty = true; });
+        inp.style.borderLeft = `5px solid var(--${colorOf(i)})`;
+        nb.append(lab, inp);
+      }
+    }
+    const il = $("ilist"); il.textContent = "";
+    for (const it of items()){
+      const r = el("div","ir");
+      r.append(el("span", null, it.emoji || "🛒"), el("span","n", it.name));
+      if (canWrite && db){
+        const x = el("button","x","×"); x.setAttribute("aria-label","Quitar " + it.name);
+        x.addEventListener("click", async () => {
+          if (x.dataset.armed !== "1"){ x.dataset.armed = "1"; x.textContent = "¿Quitar?"; x.style.fontSize="13px"; setTimeout(()=>{ x.dataset.armed=""; x.textContent="×"; x.style.fontSize=""; }, 3000); return; }
+          await saveConfig({ ...config, items: items().filter(i => i.id !== it.id) });
+        });
+        r.append(x);
+      }
+      il.append(r);
+    }
+    ["saveNames","addItem","newName","newEmoji"].forEach(id => $(id).disabled = !canWrite || !db);
+  }
+
+  // ---------- sheet ----------
+  function openSheet(it){
+    pendingItem = it;
+    const t = turnoDe(it.id);
+    $("sheetTitle").textContent = `${it.emoji || ""} ${it.name}`.trim();
+    $("sheetSub").textContent = "¿Quién lo compró?";
+    const w = $("who"); w.textContent = "";
+    const n = roomies().length || 3;
+    for (let i = 0; i < n; i++){
+      const b = el("button"); b.style.background = `var(--${colorOf(i)}s)`; b.style.color = `var(--${colorOf(i)})`;
+      if (i === t) b.style.borderColor = `var(--${colorOf(i)})`;
+      b.append(document.createTextNode(nameOf(i)));
+      if (i === t) b.append(el("small", null, "le tocaba"));
+      b.addEventListener("click", () => registrar(i));
+      w.append(b);
+    }
+    $("sheetbg").classList.add("show");
+  }
+  function closeSheet(){ $("sheetbg").classList.remove("show"); pendingItem = null; }
+  $("cancel").addEventListener("click", closeSheet);
+  $("sheetbg").addEventListener("click", e => { if (e.target.id === "sheetbg") closeSheet(); });
+
+  let busy = false;
+  async function registrar(quien){
+    if (!pendingItem || busy) return;
+    const it = pendingItem; busy = true; closeSheet();
+    try {
+      await addDoc(collection(db, "compras"), { item: it.id, quien, ts: Date.now() });
+      toast(`¡Listo! ${nameOf(quien)} compró ${it.name}`);
+    } catch(e){ fail(e); }
+    busy = false;
+  }
+
+  // ---------- settings actions ----------
+  let saving = false;
+  async function saveConfig(next){
+    if (saving) return false;
+    saving = true;
+    try { await setDoc(doc(db, "casa", "config"), { roomies: next.roomies || [], items: next.items || [] }); saving = false; return true; }
+    catch(e){ saving = false; fail(e); return false; }
+  }
+  $("saveNames").addEventListener("click", async () => {
+    const ins = $("names").querySelectorAll("input");
+    const rs = Array.from(ins).map(inp => ({ name: inp.value.trim().slice(0,24) }));
+    if (await saveConfig({ ...(config||{items:[]}), roomies: rs })){
+      namesDirty = false; const s = $("savedNames"); s.classList.add("show"); setTimeout(()=>s.classList.remove("show"), 1800);
+    }
+  });
+  $("addItem").addEventListener("click", async () => {
+    const name = $("newName").value.trim().slice(0,40);
+    if (!name) { $("newName").focus(); return; }
+    const emoji = $("newEmoji").value.trim().slice(0,4) || "🛒";
+    const id = "i" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    if (await saveConfig({ ...(config||{roomies:[]}), items: [...items(), { id, name, emoji }] })){
+      $("newName").value = ""; $("newEmoji").value = ""; toast(`Agregado: ${name}`);
+    }
+  });
+  $("newName").addEventListener("keydown", e => { if (e.key === "Enter") $("addItem").click(); });
+
+  function fail(e){
+    const code = e && e.code;
+    if (code === "permission-denied"){ note("La base de datos rechazó el cambio. Revisa las reglas de Firestore."); }
+    else if (code === "resource-exhausted"){ note("Se acabó el uso gratis de hoy. Mañana vuelve a funcionar solo."); }
+    else { toast("No se pudo guardar, intenta otra vez"); }
+  }
+
+  // ---------- start ----------
+  (async function start(){
+    const timer = setTimeout(() => {
+      if (!gotConfig || !gotCompras) note("Todavía no se puede conectar. Revisa tu internet; la página se actualizará sola.");
+    }, 10000);
+    try {
+      db = getFirestore(initializeApp(firebaseConfig));
+    } catch(e){
+      clearTimeout(timer);
+      note("No se pudo conectar con Firebase. Revisa tu internet.");
+      return;
+    }
+
+    const clearIfReady = (meta) => { if (gotConfig && gotCompras && meta && !meta.fromCache){ clearTimeout(timer); if ($("note").textContent.startsWith("Todavía")) note(""); } };
+
+    let sembrado = false;
+    onSnapshot(doc(db, "casa", "config"), snap => {
+      const d = snap.exists() ? snap.data() : null;
+      // Primera vez: si todavía no hay configuración, guardamos la inicial.
+      if (!d && !snap.metadata.fromCache && !sembrado){ sembrado = true; setDoc(doc(db, "casa", "config"), CONFIG_INICIAL).catch(fail); }
+      config = d ? { roomies: Array.isArray(d.roomies) ? d.roomies : [], items: Array.isArray(d.items) ? d.items.filter(i => i && i.id && i.name) : [] } : { roomies: [], items: [] };
+      gotConfig = true; clearIfReady(snap.metadata); render();
+    }, err => { clearTimeout(timer); gotConfig = true; config = config || {roomies:[],items:[]}; note("Se perdió la conexión con los datos. Vuelve a abrir la página."); render(); });
+
+    onSnapshot(query(collection(db, "compras"), orderBy("ts","desc"), limit(500)), snap => {
+      compras = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      gotCompras = true; clearIfReady(snap.metadata); render();
+    }, err => { clearTimeout(timer); gotCompras = true; note("Se perdió la conexión con los datos. Vuelve a abrir la página."); render(); });
+  })();
+})();
+</script>
+</body>
+</html>
